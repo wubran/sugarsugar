@@ -7,7 +7,11 @@
 			var canvas = document.getElementById('screen');
 			var ctx = canvas.getContext('2d');
 			var sugars = [];
-			var scrollnumber = 1;
+			var scrollnumber = 3;
+			var click = false
+			var mouseX = 0;
+			var mouseY = 0;
+			const maxsugars = 5000;
 			canvasResize();
 
 /*
@@ -47,15 +51,33 @@
 			canvas.addEventListener('mousedown', onClick);
 			canvas.addEventListener("mouseup", onRelease);
 			canvas.addEventListener("wheel", scroll)
+			canvas.addEventListener('mouseenter', onMouseEnter);
+			canvas.addEventListener('mouseleave', onMouseLeave);
+			canvas.addEventListener('mousemove', onMouseMove);
 			function onClick(event){
-				var x = Math.round(event.clientX/3);
-				var y = Math.round(event.clientY/3);
-				arry[x][y] = 1;
-				sugr = new Sugr(x, y);
-				sugars.push(sugr);
+				click=true;
+				// var x = Math.round(event.clientX/3);
+				// var y = Math.round(event.clientY/3);
+				// arry[x][y] = 1;
+				// sugr = new Sugr(x, y);
+				// sugars.push(sugr);
 			}
 
 			function onRelease(event){
+				click=false;
+			}
+
+			function onMouseMove(event){
+			  mouseX = event.pageX;
+			  mouseY = event.pageY;
+			}
+
+			function onMouseEnter(event){
+			  mousein = true;
+			}
+
+			function onMouseLeave(event){
+			  mousein = false;
 			}
 
 			class Sugr{
@@ -67,6 +89,7 @@
 				calc(){
 					//console.log(arry[this.x][this.y+1], this.y);
 					var tests = []
+					var results = [0, 0, 0]
 					var directions = [
 						[-1, 0], // left
 						[1, 0],  // right
@@ -86,12 +109,44 @@
 							console.log("direction read error, index:", i)
 						}
 					}
+					if(tests[0]==true){
+						results[2]+=Math.random();
+					}
+					if(tests[1]==true){
+						results[0]+=Math.random();
+					}
+					if(tests[2]==false){
+						results[0]+=2*Math.random();
+					}
+					if(tests[3]==false){
+						results[2]+=2*Math.random();
+					}
 					if(tests[4]==false){
 						this.color = "rgba(255, 160, 160, 1)";
-						this.y += 1
+						results[1] = 1.7
 					} else{
 						this.color = "rgba(160, 255, 160, 1)";
 					}
+					var max = Math.max(...results);
+					console.log(max);
+					if(max>=1.7){
+						var move = results.indexOf(max);
+						console.log(move)
+						switch(move){
+							case 0:
+								this.x-=1
+								this.y+=1
+								break;
+							case 1:
+								this.y+=1
+								break;
+							case 2:
+								this.x+=1
+								this.y+=1
+								break;
+						}
+					}
+
 					/*
 					if(arry[this.x][this.y+1] == 0){
 						this.color = "rgba(255, 160, 160, 1)";
@@ -121,6 +176,7 @@
 				if(amt<=-1){
 				//console.log(mouseX, mouseY)
 					for(var i = 0; i < scrollnumber; i++){
+
 						sugr = new Sugr(x, y);
 
 						if(20>x){
@@ -133,19 +189,24 @@
 						} else if(y>canvas.height-20) {
 							y = canvas.height-20;
 						}
-						var gridx = Math.round((x + Math.random()*20-10)/3);
-						var gridy = Math.round((y + Math.random()*20-10)/3);
-						sugr.x = gridx;
-						sugr.y = gridy;
-						arry[gridx][gridy] = 1;
-						sugars.push(sugr);
-						if(sugars.length>1000){
-							sugars.shift();
+						sugr.x = Math.round((x + Math.random()*20-10)/3);
+						sugr.y = Math.round((y + Math.random()*20-10)/3);
+
+						if(arry[sugr.x][sugr.y]==true){
+							break;
+						} else{
+							arry[sugr.x][sugr.y] = true;
+							sugars.push(sugr);
+							if(sugars.length>maxsugars){
+								arry[sugars[0].x][sugars[0].y] = 0;
+								sugars.shift();
+							}
 						}
 					}
 				} else if(amt>=1){
 					if(sugars.length>0){
 						for(var i = 0; i < scrollnumber; i++){
+							arry[sugars[0].x][sugars[0].y] = 0;
 							sugars.shift();
 							if(sugars.length==0){
 								break;
@@ -156,8 +217,12 @@
 				}
 			}
 			setInterval(function(){
+				//console.log(mouseX,mouseY, click);
 				ctx.fillStyle = canvascolor;
 				ctx.fillRect(0, 0, canvas.width, canvas.height);
+				if(click){
+					makesugar(mouseX,mouseY,-1);
+				}
 				for(var sgr of sugars){
 				    sgr.draw();
 						sgr.calc();
@@ -166,7 +231,7 @@
 
 			function scroll(event){
 				makesugar(event.clientX, event.clientY, event.deltaX + event.deltaY + event.deltaZ);
-			 }
+			}
 
 
 			window.onresize = canvasResize;
