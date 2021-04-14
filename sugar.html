@@ -106,13 +106,19 @@
 				constructor(x, y, island){
 					this.x = x;
 					this.y = y;
-					this.color = "rgba(255, 255, 255, 1)";
+					this.shade = 0;
+					var shade = Math.random()*35
+					this.r = (205+shade+Math.random()*15);
+					this.g = (205+shade+Math.random()*15);
+					this.b = (205+shade+Math.random()*15);
+					this.color = "rgba("+(this.r+this.shade)+", "+(this.g+this.shade)+", "+(this.b+this.shade)+")";
 					this.island = island;
 				}
 				calc(){
 					if(this.island){
 						return;
 					}
+					//this.shade = 0;
 					//console.log(arry[this.x][this.y+1], this.y);
 					var tests = []
 					var results = [0, 0]
@@ -135,14 +141,18 @@
 					}
 					if(packed>=6){
 						arry[this.x][this.y] = true;
-						this.color = "rgba(255, 255, 255, 1)";
+						this.shade = 0;
+						//this.color = "rgba(255, 255, 255, 1)";
 						return;
+					} else {
+						this.shade = -30;
 					}
 					if(!tests[4]){
-						this.color = "rgba(255, 140, 140, 1)";
+						this.shade+=25;
+						//this.color = "rgba(255, 140, 140, 1)";
 						this.y+=1;
 					} else{
-						this.color = "rgba(140, 255, 140, 1)";
+						//this.color = "rgba(140, 255, 140, 1)";
 					}
 					if(tests[0]){
 						results[0]-=3*Math.random();
@@ -152,6 +162,7 @@
 					}
 					if(!tests[2]){
 						results[0]+=1.5*Math.random();
+						//this.shade = -20;
 					}
 					if(!tests[3]){
 						results[1]+=1.5*Math.random();
@@ -198,8 +209,11 @@
 
 				}
 				draw(){
-					var color = this.color
-					ctx.fillStyle = color;
+					if(this.island){
+						ctx.fillStyle = "purple";
+					} else{
+						ctx.fillStyle = "rgba("+(this.r+this.shade)+", "+(this.g+this.shade)+", "+(this.b+this.shade)+")";
+					}
 					ctx.fillRect((this.x)*3-1, (this.y)*3-1, 3, 3);
 					// console.log("sugardrawn");
 				}
@@ -316,16 +330,16 @@
 				ctx.fillText("click and hold to do things.", canvas.width/50, 5.4*canvas.height/40);
 				ctx.fillText("press m to switch mouse mode.", canvas.width/50, 6.4*canvas.height/40);
 			}
-			var intervalcounter = 0;
+		//	var intervalcounter = 0;
 			setInterval(function(){
-				intervalcounter+=1
+				//intervalcounter+=1
 				//console.log(mouseX,mouseY, click);
 				if(click){
 					switch(mousemode){
 						case 0:
-							if(intervalcounter==5){
+							//if(intervalcounter==5){
 								makesugar(mouseX,mouseY,-1);
-							}
+							//}
 							break;
 						case 1:
 							drawland(mouseX,mouseY,1);
@@ -335,7 +349,7 @@
 							break;
 					}
 				}
-				if(intervalcounter==5){
+				//if(intervalcounter==5){
 					fillscreen()
 					for(var sgr of sugars){
 					   sgr.draw();
@@ -343,9 +357,9 @@
 							sgr.calc();
 						}
 					}
-					intervalcounter = 0;
-				}
-			}, 3);
+				//	intervalcounter = 0;
+				//}
+			}, 20);
 
 			function scroll(event){
 				makesugar(event.clientX, event.clientY, event.deltaX + event.deltaY + event.deltaZ);
