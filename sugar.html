@@ -7,13 +7,18 @@
 			var canvas = document.getElementById('screen');
 			var ctx = canvas.getContext('2d');
 			var sugars = [];
-			var scrollnumber = 3;
+			var scrollnumber = 1;
 			var click = false
 			var mouseX = 0;
 			var mouseY = 0;
 			var mousemode = 0;
 			var pause = false;
 			const maxsugars = 20000;
+			var size = 4; //sugar size
+			var bottomspace = size;
+			var sugarborders = 0; //0 to 0.5
+			var grainsizes = size;
+			var bottomsquares = bottomspace/size;
 			canvasResize();
 
 /*
@@ -28,24 +33,24 @@
 			}
 */
 
-			var arry = Array(Math.round(canvas.width/3));
+			var arry = Array(Math.round(canvas.width/size-1));
 
-			arry[0] = Array(Math.round(canvas.height/3-10));
-			for(var j=0; j<Math.round(canvas.height/3-10); ++j){
+			arry[0] = Array(Math.round(canvas.height/size-bottomsquares));
+			for(var j=0; j<Math.round(canvas.height/size-bottomsquares); ++j){
 				arry[0][j] = true;
 				arry[0].push(true);
 			}
-			for(var i=1; i<Math.round(canvas.width/3); ++i) {
-			  arry[i] = Array(Math.round(canvas.height/3-10));
-			  for(var j=0; j<Math.round(canvas.height/3-10); ++j){
+			for(var i=1; i<Math.round(canvas.width/size-1); ++i) {
+			  arry[i] = Array(Math.round(canvas.height/size-bottomsquares));
+			  for(var j=0; j<Math.round(canvas.height/size-bottomsquares); ++j){
 			  	arry[i][j] = false;
 					arry[i].push(true);
 				}
 			}
-			arry[Math.round(canvas.width/3)] = Array(Math.round(canvas.height/3-10));
-			for(var j=0; j<Math.round(canvas.height/3-10); ++j){
-				arry[Math.round(canvas.width/3)][j] = true;
-				arry[Math.round(canvas.width/3)].push(true);
+			arry[Math.round(canvas.width/size-1)] = Array(Math.round(canvas.height/size-bottomsquares));
+			for(var j=0; j<Math.round(canvas.height/size-bottomsquares); ++j){
+				arry[Math.round(canvas.width/size-1)][j] = true;
+				arry[Math.round(canvas.width/size-1)].push(true);
 			}
 
 			console.log(canvas.width, canvas.height, arry.length, arry[1].length)
@@ -139,26 +144,28 @@
 							packed+=1
 						}
 					}
-					if(packed>=6){
+					if(packed>=6&&Math.random()<0.99){
 						arry[this.x][this.y] = true;
 						this.shade = 0;
 						//this.color = "rgba(255, 255, 255, 1)";
 						return;
-					} else {
+					} else if(packed<6){
 						this.shade = -30;
 					}
 					if(!tests[4]){
-						this.shade+=25;
+						if(packed<6){
+							this.shade+=25;
+						}
 						//this.color = "rgba(255, 140, 140, 1)";
 						this.y+=1;
 					} else{
 						//this.color = "rgba(140, 255, 140, 1)";
 					}
 					if(tests[0]){
-						results[0]-=3*Math.random();
+						results[0]-=3;//*Math.random();
 					}
 					if(tests[1]){
-						results[1]-=3*Math.random();
+						results[1]-=3;//*Math.random();
 					}
 					if(!tests[2]){
 						results[0]+=1.5*Math.random();
@@ -214,7 +221,7 @@
 					} else{
 						ctx.fillStyle = "rgba("+(this.r+this.shade)+", "+(this.g+this.shade)+", "+(this.b+this.shade)+")";
 					}
-					ctx.fillRect((this.x)*3-1, (this.y)*3-1, 3, 3);
+					ctx.fillRect((this.x)*size-1+sugarborders, (this.y)*size-1+sugarborders, grainsizes, grainsizes);
 					// console.log("sugardrawn");
 				}
 			}
@@ -235,8 +242,8 @@
 						} else if(y>canvas.height-20) {
 							y = canvas.height-20;
 						}
-						sugr.x = Math.round((x + Math.random()*20-10)/3);
-						sugr.y = Math.round((y + Math.random()*20-10)/3);
+						sugr.x = Math.round((x + Math.random()*size*4)/size)-2;
+						sugr.y = Math.round((y + Math.random()*size*4)/size)-2;
 
 						if(arry[sugr.x][sugr.y]==true){
 							break;
@@ -263,35 +270,38 @@
 				}
 			}
 			function deletesugar(x, y, radius){
-				ex = Math.round(x/3+1.5);
-				why = Math.round(y/3+1.5);
+				ex = Math.round(x/size);
+				why = Math.round(y/size);
 				for(var i = 0; i < sugars.length; i++){
 					if(Math.abs(sugars[i].x-ex)<radius && Math.abs(sugars[i].y-why)<radius){
-						sugars.splice(i,1)
+						arry[sugars[i].x][sugars[i].y] = 0;
+						sugars.splice(i,1);
+						i--;
 					}
-				}
+				}/*
 				for(var i = ex-radius; i < ex+radius; i++){
-					if(i<Math.round(canvas.width/3)&&i>0){
+					if(i<Math.round(canvas.width/size-1)&&i>0){
 						for(var j = why-radius; j < why+radius; j++){
-							if(j<Math.round(canvas.height/3-10)&&j>0){
+							if(j<Math.round(canvas.height/size-bottomsquares)&&j>0){
 								arry[i][j] = 0;
 							}
 						}
 					}
-				}
+				}*/
 			}
 			function drawland(x, y, radius){
-				ex = Math.round(x/3+1.5);
-				why = Math.round(y/3+1.5);
+				ex = Math.round(x/size);
+				why = Math.round(y/size);
 				for(var i = 0; i < sugars.length; i++){
 					if(Math.abs(sugars[i].x-ex)<radius && Math.abs(sugars[i].y-why)<radius){
-						sugars.splice(i,1)
+						sugars.splice(i,1);
+						i--;
 					}
 				}
 				for(var i = ex-radius; i < ex+radius; i++){
-					if(i<Math.round(canvas.width/3)&&i>0){
+					if(i<Math.round(canvas.width/size-1)&&i>0){
 						for(var j = why-radius; j < why+radius; j++){
-							if(j<Math.round(canvas.height/3-10)&&j>0){
+							if(j<Math.round(canvas.height/size-bottomsquares)&&j>0){
 								arry[i][j] = 1;
 								sugr = new Sugr(i,j,true);
 								sugr.color = "purple"
@@ -328,7 +338,9 @@
 				ctx.fillStyle = '#72C9CA';
 				ctx.font = canvas.width / 80 + "px Arial";
 				ctx.fillText("click and hold to do things.", canvas.width/50, 5.4*canvas.height/40);
-				ctx.fillText("press m to switch mouse mode.", canvas.width/50, 6.4*canvas.height/40);
+				ctx.fillText("press m to switch mouse modes.", canvas.width/50, 6.4*canvas.height/40);
+				ctx.fillText("press space to pause.", canvas.width/50, 7.4*canvas.height/40);
+				//ctx.fillText("use number keys to change zoom.", canvas.width/50, 8.4*canvas.height/40);
 			}
 		//	var intervalcounter = 0;
 			setInterval(function(){
@@ -338,25 +350,38 @@
 					switch(mousemode){
 						case 0:
 							//if(intervalcounter==5){
-								makesugar(mouseX,mouseY,-1);
+							makesugar(mouseX,mouseY,-1);
 							//}
 							break;
 						case 1:
 							drawland(mouseX,mouseY,1);
 							break;
 						case 2:
-							deletesugar(mouseX,mouseY,3);
+							deletesugar(mouseX,mouseY,2);
 							break;
 					}
 				}
 				//if(intervalcounter==5){
-					fillscreen()
-					for(var sgr of sugars){
-					   sgr.draw();
-						if(!pause){
-							sgr.calc();
-						}
+				fillscreen()
+				for(var sgr of sugars){
+				   sgr.draw();/*
+					 switch(mousemode){
+						 case 0:
+							 //if(intervalcounter==5){
+							 makesugar(mouseX,mouseY,-1);
+							 //}
+							 break;
+						 case 1:
+							 drawland(mouseX,mouseY,1);
+							 break;
+						 case 2:
+							 deletesugar(mouseX,mouseY,2);
+							 break;
+					 }*/
+					if(!pause){
+						sgr.calc();
 					}
+				}
 				//	intervalcounter = 0;
 				//}
 			}, 20);
